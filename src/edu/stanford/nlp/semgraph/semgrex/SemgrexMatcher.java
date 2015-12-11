@@ -1,5 +1,6 @@
 package edu.stanford.nlp.semgraph.semgrex;
 
+import com.google.common.collect.MapMaker;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.ling.*;
 
@@ -122,7 +123,7 @@ public abstract class SemgrexMatcher {
    * Note that this optimization will cause strange things to happen if you mutate a semantic graph between
    * calls to Semgrex.
    */
-  private static final WeakHashMap<Integer, List<IndexedWord>> topologicalSortCache = new WeakHashMap<>();
+  private static Map<Integer, List<IndexedWord>> topologicalSortCache = new MapMaker().weakKeys().makeMap();
 
   /**
    * Find the next match of the pattern in the graph

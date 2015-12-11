@@ -1,6 +1,7 @@
 package edu.stanford.nlp.pipeline;
 
 import com.sun.net.httpserver.Headers;
+import com.google.common.collect.MapMaker;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -286,8 +287,8 @@ public class StanfordCoreNLPServer implements Runnable {
      * The default properties to use in the absence of anything sent by the client.
      */
     public final Properties defaultProps;
-
-    /**
+    
+		/**
      * Create a handler for accepting annotation requests.
      * @param props The properties file to use as the default if none were sent by the client.
      */

@@ -39,8 +39,9 @@ public class Weight implements Serializable {
   public int size() {
     if (packed == null) {
       return 0;
+    } else {
+      return packed.length;
     }
-    return packed.length;
   }
 
   private int unpackIndex(int i) {

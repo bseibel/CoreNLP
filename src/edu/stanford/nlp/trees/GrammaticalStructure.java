@@ -8,6 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.Predicate;
 import java.util.function.Function;
 
+import com.google.common.collect.MapMaker;
 import edu.stanford.nlp.graph.DirectedMultiGraph;
 import edu.stanford.nlp.international.Language;
 import edu.stanford.nlp.io.IOUtils;
@@ -1473,7 +1474,8 @@ public abstract class GrammaticalStructure implements Serializable {
     private final boolean keepPunct;
     private final TreebankLangParserParams params;
 
-    private final Map<GrammaticalStructure, Tree> origTrees = new WeakHashMap<>();
+//    private final Map<GrammaticalStructure, Tree> origTrees = new WeakHashMap<GrammaticalStructure, Tree>();
+    private final Map<GrammaticalStructure, Tree> origTrees = new MapMaker().weakKeys().makeMap();
 
     public TreeBankGrammaticalStructureWrapper(Iterable<Tree> wrappedTrees, boolean keepPunct, TreebankLangParserParams params) {
       trees = wrappedTrees;
