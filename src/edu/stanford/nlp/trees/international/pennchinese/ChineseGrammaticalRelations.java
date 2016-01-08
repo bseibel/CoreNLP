@@ -99,7 +99,7 @@ public class ChineseGrammaticalRelations {
 
 
   public static GrammaticalRelation valueOf(String s) {
-    return GrammaticalRelation.valueOf(s, values(), valuesLock());
+    return GrammaticalRelation.valueOf(s, values());
   }
 
   ////////////////////////////////////////////////////////////

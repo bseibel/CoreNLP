@@ -8,6 +8,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.Predicate;
 import java.util.function.Function;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.MapMaker;
 import edu.stanford.nlp.graph.DirectedMultiGraph;
 import edu.stanford.nlp.international.Language;
@@ -150,7 +152,6 @@ public abstract class GrammaticalStructure implements Serializable {
    *
    * @param t             A Tree to analyze
    * @param relations     A set of GrammaticalRelations to consider
-   * @param relationsLock Something needed to make this thread-safe when iterating over relations
    * @param transformer   A tree transformer to apply to the tree before converting (this argument
    *                      may be null if no transformer is required)
    * @param hf            A HeadFinder for analysis
@@ -162,7 +163,7 @@ public abstract class GrammaticalStructure implements Serializable {
    * @param tagFilter     Appears to be unused (filters out tags??)
    */
   public GrammaticalStructure(Tree t, Collection<GrammaticalRelation> relations,
-                              Lock relationsLock, TreeTransformer transformer,
+                              TreeTransformer transformer,
                               HeadFinder hf, Predicate<String> puncFilter,
                               Predicate<String> tagFilter) {
     TreeGraphNode treeGraph = new TreeGraphNode(t, (TreeGraphNode) null);
@@ -197,18 +198,7 @@ public abstract class GrammaticalStructure implements Serializable {
     DirectedMultiGraph<TreeGraphNode, GrammaticalRelation> basicGraph = new DirectedMultiGraph<>();
     DirectedMultiGraph<TreeGraphNode, GrammaticalRelation> completeGraph = new DirectedMultiGraph<>();
 
-    // analyze the root (and its descendants, recursively)
-    if (relationsLock != null) {
-      relationsLock.lock();
-    }
-    try {
-      analyzeNode(root, root, relations, hf, puncFilter, tagFilter, basicGraph, completeGraph);
-    }
-    finally {
-      if (relationsLock != null) {
-        relationsLock.unlock();
-      }
-    }
+    analyzeNode(root, root, relations, hf, puncFilter, tagFilter, basicGraph, completeGraph);
 
     attachStrandedNodes(root, root, false, puncFilter, tagFilter, basicGraph);
 
@@ -1476,6 +1466,10 @@ public abstract class GrammaticalStructure implements Serializable {
 
 //    private final Map<GrammaticalStructure, Tree> origTrees = new WeakHashMap<GrammaticalStructure, Tree>();
     private final Map<GrammaticalStructure, Tree> origTrees = new MapMaker().weakKeys().makeMap();
+    private final Cache<GrammaticalStructure, Tree> origTreeCache = CacheBuilder.newBuilder()
+            .concurrencyLevel(32)
+            .softValues()
+            .build();
 
     public TreeBankGrammaticalStructureWrapper(Iterable<Tree> wrappedTrees, boolean keepPunct, TreebankLangParserParams params) {
       trees = wrappedTrees;
@@ -1489,7 +1483,7 @@ public abstract class GrammaticalStructure implements Serializable {
     }
 
     public Tree getOriginalTree(GrammaticalStructure gs) {
-      return origTrees.get(gs);
+      return origTreeCache.getIfPresent(gs);
     }
 
 
@@ -1523,7 +1517,7 @@ public abstract class GrammaticalStructure implements Serializable {
           }
           try {
             gs = params.getGrammaticalStructure(t, puncFilter, hf);
-            origTrees.put(gs, t);
+            origTreeCache.put(gs, t);
             next = gs;
             // System.err.println("GsIterator: Next tree is");
             // System.err.println(t);

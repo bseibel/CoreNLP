@@ -123,7 +123,7 @@ public abstract class SemgrexMatcher {
    * Note that this optimization will cause strange things to happen if you mutate a semantic graph between
    * calls to Semgrex.
    */
-  private static Map<Integer, List<IndexedWord>> topologicalSortCache = new MapMaker().weakKeys().makeMap();
+  private static Map<Integer, List<IndexedWord>> topologicalSortCache = new MapMaker().weakKeys().concurrencyLevel(32).makeMap();
 
   /**
    * Find the next match of the pattern in the graph
@@ -135,25 +135,21 @@ public abstract class SemgrexMatcher {
     if (findIterator == null) {
       try {
         if (hyp) {
-          synchronized (topologicalSortCache) {
             List<IndexedWord> topoSort = topologicalSortCache.get(System.identityHashCode(sg));
             if (topoSort == null || topoSort.size() != sg.size()) {  // size check to mitigate a stale cache
               topoSort = sg.topologicalSort();
               topologicalSortCache.put(System.identityHashCode(sg), topoSort);
             }
             findIterator = topoSort.iterator();
-          }
         } else if (sg_aligned == null) {
           return false;
         } else {
-          synchronized (topologicalSortCache) {
             List<IndexedWord> topoSort = topologicalSortCache.get(System.identityHashCode(sg_aligned));
             if (topoSort == null || topoSort.size() != sg_aligned.size()) {  // size check to mitigate a stale cache
               topoSort = sg_aligned.topologicalSort();
               topologicalSortCache.put(System.identityHashCode(sg_aligned), topoSort);
             }
             findIterator = topoSort.iterator();
-          }
         }
       } catch (Exception ex) {
         if (hyp) {

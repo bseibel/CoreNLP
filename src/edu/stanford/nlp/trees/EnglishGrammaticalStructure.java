@@ -78,7 +78,7 @@ public class EnglishGrammaticalStructure extends GrammaticalStructure {
    */
   public EnglishGrammaticalStructure(Tree t, Predicate<String> puncFilter, HeadFinder hf) {
     // the tree is normalized (for index and functional tag stripping) inside CoordinationTransformer
-    super(t, EnglishGrammaticalRelations.values(), EnglishGrammaticalRelations.valuesLock(), new CoordinationTransformer(hf), hf, puncFilter, Filters.acceptFilter());
+    super(t, EnglishGrammaticalRelations.values(), new CoordinationTransformer(hf), hf, puncFilter, Filters.acceptFilter());
   }
 
   /** Used for postprocessing CoNLL X dependencies */

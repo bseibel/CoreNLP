@@ -89,7 +89,7 @@ public class UniversalEnglishGrammaticalStructure extends GrammaticalStructure {
   public UniversalEnglishGrammaticalStructure(Tree t, Predicate<String> tagFilter, HeadFinder hf, boolean threadSafe) {
 
     // the tree is normalized (for index and functional tag stripping) inside CoordinationTransformer
-    super(t, UniversalEnglishGrammaticalRelations.values(), UniversalEnglishGrammaticalRelations.valuesLock(),
+    super(t, UniversalEnglishGrammaticalRelations.values(),
             new CoordinationTransformer(hf, true), hf, Filters.acceptFilter(), tagFilter);
   }
 
@@ -653,7 +653,16 @@ public class UniversalEnglishGrammaticalStructure extends GrammaticalStructure {
   /* Used by correctWHAttachment */
   private static final SemgrexPattern XCOMP_PATTERN = SemgrexPattern.compile("{}=root >xcomp {}=embedded >/^(dep|dobj)$/ {}=wh ?>/([di]obj)/ {}=obj");
 
-  private static final Morphology morphology = new Morphology();
+  private static final ThreadLocal<Morphology> threadLocalMorphology = new ThreadLocal<Morphology>() {
+    @Override
+    protected Morphology initialValue() {
+      return new Morphology();
+    }
+  };
+
+  private static Morphology getMorphology() {
+    return threadLocalMorphology.get();
+  }
 
   /**
    * Tries to correct complicated cases of WH-movement in
@@ -686,7 +695,7 @@ public class UniversalEnglishGrammaticalStructure extends GrammaticalStructure {
           reattach = true;
         } else {
           /* If the control verb can't have an object, we also have to reattach. */
-          String lemma = morphology.lemma(root.value(), root.tag());
+          String lemma = getMorphology().lemma(root.value(), root.tag());
           if (lemma.matches(EnglishPatterns.NP_V_S_INF_VERBS_REGEX)) {
             reattach = true;
           }

@@ -6,3 +6,9 @@
 *.so
 .DS_Store
 .settings/**
+.idea
+target
+classes
+*.iml
+stanford-corenlp-models-current.jar
+javanlp-core.jar
